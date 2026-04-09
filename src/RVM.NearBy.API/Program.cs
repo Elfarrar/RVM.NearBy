@@ -35,6 +35,12 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<RVM.NearBy.Infrastructure.Data.NearByDbContext>();
+    await db.Database.EnsureCreatedAsync();
+}
+
 var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrEmpty(pathBase))
     app.UsePathBase(pathBase);
