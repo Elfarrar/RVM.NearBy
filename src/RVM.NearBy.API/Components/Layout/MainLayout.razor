@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+
+<div class="app-layout">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>RVM.NearBy</h2>
+            <span class="subtitle">Social Network</span>
+        </div>
+        <ul class="nav-list">
+            <li><NavLink href="" Match="NavLinkMatch.All">Dashboard</NavLink></li>
+            <li><NavLink href="feed">Feed</NavLink></li>
+            <li><NavLink href="places">Places</NavLink></li>
+            <li><NavLink href="profiles">Profiles</NavLink></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        @Body
+    </main>
+</div>

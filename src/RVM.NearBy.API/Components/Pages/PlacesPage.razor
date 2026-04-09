@@ -1,0 +1,73 @@
+@page "/places"
+@using RVM.NearBy.Domain.Entities
+@using RVM.NearBy.Domain.Interfaces
+@inject IPlaceRepository PlaceRepo
+
+<h1>Places</h1>
+
+<div class="search-bar">
+    <input @bind="_search" @bind:event="oninput" @onkeyup="OnSearch" placeholder="Search places..." class="input-sm" />
+</div>
+
+@if (_loaded)
+{
+    @if (_places.Count == 0)
+    {
+        <div class="empty-state">No places found.</div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Address</th>
+                    <th>Posts</th>
+                    <th>Coordinates</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var place in _places)
+                {
+                    <tr>
+                        <td>@place.Name</td>
+                        <td><span class="badge">@(place.Category ?? "—")</span></td>
+                        <td>@(place.Address ?? "—")</td>
+                        <td>@place.PostCount</td>
+                        <td>@place.Latitude.ToString("F4"), @place.Longitude.ToString("F4")</td>
+                        <td>@place.CreatedAt.ToString("d")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <div class="loading">Loading places...</div>
+}
+
+@code {
+    private List<Place> _places = [];
+    private string _search = "";
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Search();
+    }
+
+    private async Task OnSearch()
+    {
+        await Search();
+    }
+
+    private async Task Search()
+    {
+        _loaded = false;
+        _places = await PlaceRepo.SearchAsync(_search, 50);
+        _loaded = true;
+    }
+}

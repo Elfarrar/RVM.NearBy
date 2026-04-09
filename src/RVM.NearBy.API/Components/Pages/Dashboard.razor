@@ -1,0 +1,88 @@
+@page "/"
+@using RVM.NearBy.Domain.Entities
+@using RVM.NearBy.Domain.Interfaces
+@inject IUserProfileRepository ProfileRepo
+@inject IPostRepository PostRepo
+@inject IPlaceRepository PlaceRepo
+
+<h1>Dashboard</h1>
+
+@if (_loaded)
+{
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-value">@_profileCount</span>
+            <span class="stat-label">Profiles</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">@_postCount</span>
+            <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value">@_placeCount</span>
+            <span class="stat-label">Places</span>
+        </div>
+    </div>
+
+    <h2>Recent Posts</h2>
+    @if (_recentPosts.Count == 0)
+    {
+        <div class="empty-state">No posts yet.</div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Author</th>
+                    <th>Content</th>
+                    <th>Location</th>
+                    <th>Likes</th>
+                    <th>Comments</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var post in _recentPosts)
+                {
+                    <tr>
+                        <td>@(post.Author?.DisplayName ?? "Unknown")</td>
+                        <td>@Truncate(post.Content, 80)</td>
+                        <td>@(post.LocationName ?? "—")</td>
+                        <td>@post.LikeCount</td>
+                        <td>@post.CommentCount</td>
+                        <td>@post.CreatedAt.ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <div class="loading">Loading dashboard...</div>
+}
+
+@code {
+    private int _profileCount, _postCount, _placeCount;
+    private List<Post> _recentPosts = [];
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profiles = await ProfileRepo.SearchAsync(null, 0, 999);
+        _profileCount = profiles.Count;
+
+        var posts = await PostRepo.GetRecentAsync(0, 999);
+        _postCount = posts.Count;
+
+        var places = await PlaceRepo.SearchAsync("", 999);
+        _placeCount = places.Count;
+
+        _recentPosts = await PostRepo.GetRecentAsync(0, 10);
+        _loaded = true;
+    }
+
+    private static string Truncate(string text, int maxLength) =>
+        text.Length <= maxLength ? text : text[..maxLength] + "...";
+}

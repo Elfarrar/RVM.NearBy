@@ -30,6 +30,8 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
@@ -37,6 +39,8 @@ var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrEmpty(pathBase))
     app.UsePathBase(pathBase);
 
+app.UseStaticFiles();
+app.UseAntiforgery();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();
 
@@ -46,6 +50,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRazorComponents<RVM.NearBy.API.Components.App>()
+    .AddInteractiveServerRenderMode();
 app.MapOpenApi();
 
 app.Run();

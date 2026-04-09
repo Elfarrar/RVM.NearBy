@@ -1,0 +1,113 @@
+@page "/feed"
+@using RVM.NearBy.Domain.Entities
+@using RVM.NearBy.Domain.Interfaces
+@inject IPostRepository PostRepo
+@inject ICommentRepository CommentRepo
+
+<h1>Feed</h1>
+
+@if (_loaded)
+{
+    @if (_posts.Count == 0)
+    {
+        <div class="empty-state">No posts found.</div>
+    }
+    else
+    {
+        @foreach (var post in _posts)
+        {
+            <div class="detail-card" @onclick="() => ToggleComments(post.Id)">
+                <div class="card-header">
+                    <strong>@(post.Author?.DisplayName ?? "Unknown")</strong>
+                    <span class="badge">@(post.LocationName ?? "No location")</span>
+                </div>
+                <p>@post.Content</p>
+                <div class="card-footer">
+                    <span>@post.LikeCount likes</span>
+                    <span>@post.CommentCount comments</span>
+                    <span>@post.CreatedAt.ToString("g")</span>
+                </div>
+            </div>
+
+            @if (_expandedPostId == post.Id)
+            {
+                <div class="detail-card" style="margin-left: 1.5rem; margin-top: -0.5rem;">
+                    <h4>Comments</h4>
+                    @if (_comments.Count == 0)
+                    {
+                        <div class="empty-state">No comments yet.</div>
+                    }
+                    else
+                    {
+                        @foreach (var comment in _comments)
+                        {
+                            <div style="border-bottom: 1px solid var(--border-color, #333); padding: 0.5rem 0;">
+                                <strong>@(comment.Author?.DisplayName ?? "Unknown")</strong>
+                                <span style="opacity: 0.6; margin-left: 0.5rem;">@comment.CreatedAt.ToString("g")</span>
+                                <p style="margin: 0.25rem 0 0;">@comment.Content</p>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+
+        <div class="pagination">
+            <button class="btn-sm" disabled="@(_offset <= 0)" @onclick="PrevPage">Prev</button>
+            <span>Page @(_offset / PageSize + 1)</span>
+            <button class="btn-sm" disabled="@(_posts.Count < PageSize)" @onclick="NextPage">Next</button>
+        </div>
+    }
+}
+else
+{
+    <div class="loading">Loading feed...</div>
+}
+
+@code {
+    private const int PageSize = 20;
+    private List<Post> _posts = [];
+    private List<Comment> _comments = [];
+    private Guid? _expandedPostId;
+    private int _offset;
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPosts();
+    }
+
+    private async Task LoadPosts()
+    {
+        _loaded = false;
+        _expandedPostId = null;
+        _comments = [];
+        _posts = await PostRepo.GetRecentAsync(_offset, PageSize);
+        _loaded = true;
+    }
+
+    private async Task ToggleComments(Guid postId)
+    {
+        if (_expandedPostId == postId)
+        {
+            _expandedPostId = null;
+            _comments = [];
+            return;
+        }
+
+        _expandedPostId = postId;
+        _comments = await CommentRepo.GetByPostIdAsync(postId, 0, 10);
+    }
+
+    private async Task PrevPage()
+    {
+        _offset = Math.Max(0, _offset - PageSize);
+        await LoadPosts();
+    }
+
+    private async Task NextPage()
+    {
+        _offset += PageSize;
+        await LoadPosts();
+    }
+}
