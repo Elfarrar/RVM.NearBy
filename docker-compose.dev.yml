@@ -1,0 +1,21 @@
+services:
+  rvmnearby-api:
+    build:
+      context: .
+      dockerfile: src/RVM.NearBy.API/Dockerfile
+    container_name: rvmnearby-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=rvmtech-postgres;Database=rvmnearby_dev;Username=postgres;Password=${DB_PASSWORD}
+      - Auth__ApiKey=${API_KEY}
+      - PathBase=/nearby
+    ports:
+      - "5013:8080"
+    networks:
+      - rvmtech
+    restart: unless-stopped
+
+networks:
+  rvmtech:
+    external: true

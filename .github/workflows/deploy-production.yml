@@ -1,0 +1,39 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: rvm-nearby-deploy-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to prod server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/rvmtech/nearby
+            git pull origin main
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            export API_KEY=${{ secrets.API_KEY }}
+            docker compose -f docker-compose.prod.yml up -d --build
+            sleep 10
+            curl -f http://localhost:5013/nearby/health || exit 1
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            curl -f https://infra.rvmxtech.com/nearby/health || exit 1

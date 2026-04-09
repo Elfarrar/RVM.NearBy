@@ -1,0 +1,41 @@
+name: Deploy Development
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: rvm-nearby-deploy-dev
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to dev server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          script: |
+            cd /opt/rvmtech/nearby
+            git pull origin develop
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            export API_KEY=${{ secrets.API_KEY }}
+            docker compose -f docker-compose.dev.yml up -d --build
+            sleep 10
+            curl -f http://localhost:5013/nearby/health || exit 1
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USER }}
+          key: ${{ secrets.DEV_SSH_KEY }}
+          script: |
+            curl -f https://infra-dev.rvmxtech.com/nearby/health || exit 1

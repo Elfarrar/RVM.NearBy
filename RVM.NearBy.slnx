@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RVM.NearBy.Domain/RVM.NearBy.Domain.csproj" />
+    <Project Path="src/RVM.NearBy.Infrastructure/RVM.NearBy.Infrastructure.csproj" />
+    <Project Path="src/RVM.NearBy.API/RVM.NearBy.API.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/RVM.NearBy.Test/RVM.NearBy.Test.csproj" />
+  </Folder>
+</Solution>
