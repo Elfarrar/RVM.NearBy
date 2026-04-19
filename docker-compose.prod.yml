@@ -10,6 +10,7 @@ services:
       - ConnectionStrings__DefaultConnection=Host=rvmtech-postgres;Database=rvmnearby;Username=postgres;Password=${DB_PASSWORD}
       - Auth__ApiKey=${API_KEY}
       - PathBase=/nearby
+      - Seq__ServerUrl=http://187.77.48.215:5341
     ports:
       - "5013:8080"
     networks:

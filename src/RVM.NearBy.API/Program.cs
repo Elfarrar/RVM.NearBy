@@ -9,11 +9,21 @@ using Serilog.Formatting.Compact;
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
     .WriteTo.Console(new RenderedCompactJsonFormatter())
-    .CreateLogger();
+    .CreateBootstrapLogger();
 
-builder.Host.UseSerilog();
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console(new RenderedCompactJsonFormatter());
+
+    var seqUrl = context.Configuration["Seq:ServerUrl"];
+    if (!string.IsNullOrEmpty(seqUrl))
+        loggerConfiguration.WriteTo.Seq(seqUrl);
+});
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<FeedService>();
