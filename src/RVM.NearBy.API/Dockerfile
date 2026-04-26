@@ -4,6 +4,7 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
+COPY nuget.config .
 COPY ["src/RVM.NearBy.API/RVM.NearBy.API.csproj", "src/RVM.NearBy.API/"]
 COPY ["src/RVM.NearBy.Infrastructure/RVM.NearBy.Infrastructure.csproj", "src/RVM.NearBy.Infrastructure/"]
 COPY ["src/RVM.NearBy.Domain/RVM.NearBy.Domain.csproj", "src/RVM.NearBy.Domain/"]
