@@ -1,3 +1,4 @@
+using RVM.Common.Security;
 using RVM.NearBy.API.Auth;
 using RVM.NearBy.API.Health;
 using RVM.NearBy.API.Middleware;
@@ -55,6 +56,12 @@ var pathBase = builder.Configuration["PathBase"];
 if (!string.IsNullOrEmpty(pathBase))
     app.UsePathBase(pathBase);
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseSecurityHeaders();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.UseMiddleware<CorrelationIdMiddleware>();
